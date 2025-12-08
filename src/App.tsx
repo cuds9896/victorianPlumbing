@@ -1,24 +1,46 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import "./App.css";
+import { getProducts } from "./api/getProducts";
+import { ProductsList } from "./types/productsListType";
 
 function App() {
+  const [productsList, setProductsList] = useState<ProductsList>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    setLoading(true);
+    getProducts({
+      query: "toilets",
+      pageNumber: 1,
+      size: 10,
+      additionalPages: 0,
+      sort: 0,
+    })
+      .then((data) => {
+        if (data.products) {
+          setProductsList(data.products);
+        }
+        setLoading(false);
+      })
+      .catch((error) => {
+        setLoading(false);
+        console.error("Error fetching products in App component:", error);
+      });
+  }, []);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <div>Product List</div>
+      {productsList.length > 0 && (
+        <div>
+          <ul>
+            {productsList.map((product, key) => (
+              <li key={key}>{product.productName}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {productsList.length === 0 &&
+        (loading ? <p>Loading products...</p> : <p>No products found.</p>)}
     </div>
   );
 }
